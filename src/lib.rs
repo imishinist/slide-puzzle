@@ -2,7 +2,7 @@ use macroquad::color::Color;
 use macroquad::math::{Vec2, vec2};
 use macroquad::{color, shapes, text};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Cell {
     pub x: usize,
     pub y: usize,
@@ -16,6 +16,15 @@ impl Cell {
     #[inline]
     pub fn as_index(&self, _rows: usize, cols: usize) -> usize {
         self.y * cols + self.x
+    }
+
+    pub fn manhattan_distance(&self, other: &Cell) -> usize {
+        let x1 = self.x as isize;
+        let y1 = self.y as isize;
+        let x2 = other.x as isize;
+        let y2 = other.y as isize;
+
+        ((x1 - x2).abs() + (y1 - y2).abs()) as usize
     }
 }
 
@@ -125,16 +134,22 @@ impl Board {
                 let cell_center_x = cell_x * cell_width + cell_width / 2.0;
                 let cell_center_y = cell_y * cell_height + cell_height / 2.0;
 
+                let rect_color = if piece.num == i + 1 {
+                    color::GREEN
+                } else {
+                    color::BROWN
+                };
+
                 shapes::draw_rectangle(
                     pos.x + cell_center_x - box_width / 2.0,
                     pos.y + cell_center_y - box_height / 2.0,
                     box_width,
                     box_height,
-                    color::BROWN,
+                    rect_color,
                 );
 
                 let text = &format!("{}", piece.num);
-                let center = text::get_text_center(text, Option::None, font_size, 1.0, 0.0);
+                let center = text::get_text_center(text, None, font_size, 1.0, 0.0);
                 text::draw_text_ex(
                     text,
                     pos.x + cell_center_x - center.x,
